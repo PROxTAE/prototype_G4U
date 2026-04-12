@@ -3,6 +3,7 @@ import { Modal, Button } from "@heroui/react";
 import Image from "next/image";
 import { Star, Trophy, ArrowUp } from "lucide-react";
 import { useEffect, useState } from "react";
+import { playSound } from "@/lib/sounds";
 
 interface LevelUpModalProps {
   level: number;
@@ -15,6 +16,7 @@ export default function LevelUpModal({ level, isOpen, onClose }: LevelUpModalPro
 
   useEffect(() => {
     if (isOpen) {
+      playSound("levelUp");
       const timer = setTimeout(() => setShowContent(true), 100);
       return () => clearTimeout(timer);
     } else {
@@ -31,7 +33,7 @@ export default function LevelUpModal({ level, isOpen, onClose }: LevelUpModalPro
       isDismissable={false}
     >
       <Modal.Container placement="center" size="sm">
-        <Modal.Dialog className="bg-transparent border-0 shadow-none overflow-hidden">
+        <Modal.Dialog aria-label="Level Up Announcement" className="bg-transparent border-0 shadow-none overflow-hidden">
           <div className="relative flex flex-col items-center justify-center p-8 text-center min-h-[400px]">
             
             {/* Background Effect */}
@@ -40,6 +42,7 @@ export default function LevelUpModal({ level, isOpen, onClose }: LevelUpModalPro
                  src="/level_up_bg.png" 
                  alt="Level Up Background" 
                  fill 
+                 sizes="(max-width: 768px) 100vw, 400px"
                  className="object-cover rounded-full"
                />
                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent rounded-full" />

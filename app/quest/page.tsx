@@ -9,6 +9,7 @@ import { useQuestStore } from "@/features/quest/useQuestStore";
 import QuestChapterGrid from "@/features/quest/QuestChapterGrid";
 import QuestDetailView from "@/features/quest/QuestDetailView";
 import ImportQuestModal from "@/features/quest/ImportQuestModal";
+import GridBackground from "@/components/GridBackground";
 
 type View = "chapters" | "detail";
 
@@ -21,6 +22,7 @@ export default function QuestPage() {
 
   return (
     <div className="relative min-h-[100dvh] bg-slate-50 dark:bg-[#0d0e1a] flex flex-col overflow-hidden transition-colors duration-500">
+      <GridBackground />
       {/* Ambient background glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-blue-400/10 dark:bg-blue-900/20 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-purple-400/10 dark:bg-purple-900/20 rounded-full blur-3xl pointer-events-none" />

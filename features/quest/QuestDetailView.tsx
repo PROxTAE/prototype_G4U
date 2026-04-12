@@ -9,6 +9,7 @@ import { useTaskStore } from "@/features/task/useTaskStore";
 import { useCardStore } from "@/features/card/useCardStore";
 import { useUserStore } from "@/features/user/useUserStore";
 import RewardClaimModal from "./RewardClaimModal";
+import { playSound } from "@/lib/sounds";
 import type { Task } from "@/types";
 
 const DIFF_THEMES = {
@@ -137,6 +138,7 @@ export default function QuestDetailView({ onBack }: { onBack: () => void }) {
     const totalCoin = coin + Math.floor(bonusExp * 0.5);
 
     gainRewards(totalXp, totalCoin);
+    playSound("reward");
 
     setPendingReward({
       xp: totalXp,

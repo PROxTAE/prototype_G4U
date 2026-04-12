@@ -20,8 +20,8 @@ export default function TopBar() {
       <div className="flex gap-2">
         {/* Avatar */}
         <div className="relative">
-          <div className="w-16 h-16 rounded-[1.5rem] border-[3px] border-cyan-500 dark:border-cyan-300 overflow-hidden bg-slate-200 dark:bg-zinc-800 shadow-[0_0_15px_rgba(6,182,212,0.3)] dark:shadow-[0_0_15px_rgba(103,232,249,0.5)]">
-             <Image src="/charecter/T_IconRole_Pile_zanni_UI.png" alt="Avatar" fill className="object-cover" />
+          <div className="w-16 h-16 rounded-[1.5rem] border-[3px] border-cyan-500 dark:border-cyan-300 overflow-hidden bg-slate-200 dark:bg-zinc-800 shadow-[0_0_15px_rgba(6,182,212,0.3)] dark:shadow-[0_0_15px_rgba(103,232,249,0.5)] relative">
+             <Image src="/character/T_IconRole_Pile_zanni_UI.png" alt="Avatar" fill sizes="64px" className="object-cover" />
           </div>
           <div className="absolute -bottom-3 -left-2 bg-white dark:bg-black text-slate-900 dark:text-white px-2 py-1 rounded-[0.7rem] border-2 border-cyan-500 dark:border-cyan-400 text-xs font-bold shadow-lg">
              <div className="text-center text-lg text-white  leading-none mt-1">{user.level}</div>

@@ -3,6 +3,8 @@ import { useState } from "react";
 import { Modal, Button } from "@heroui/react";
 import { Zap, Coins, Trophy, Sparkles } from "lucide-react";
 import Image from "next/image";
+import { useEffect } from "react";
+import { playSound } from "@/lib/sounds";
 
 interface RewardClaimModalProps {
   isOpen: boolean;
@@ -21,6 +23,12 @@ export default function RewardClaimModal({
   isQuestComplete = false,
   questTitle,
 }: RewardClaimModalProps) {
+  useEffect(() => {
+    if (isOpen) {
+      playSound("success");
+    }
+  }, [isOpen]);
+
   return (
     <Modal.Backdrop
       isOpen={isOpen}
@@ -30,7 +38,7 @@ export default function RewardClaimModal({
       isDismissable={false}
     >
       <Modal.Container placement="center" size="sm">
-        <Modal.Dialog className="overflow-hidden border-0 bg-transparent shadow-none">
+        <Modal.Dialog aria-label="Quest Rewards" className="overflow-hidden border-0 bg-transparent shadow-none">
           <div className="relative flex flex-col items-center text-center">
             {/* Glow background */}
             <div className="absolute inset-0 rounded-3xl overflow-hidden">
@@ -38,6 +46,7 @@ export default function RewardClaimModal({
                 src="/quest_reward_bg.png"
                 alt="reward bg"
                 fill
+                sizes="(max-width: 768px) 100vw, 400px"
                 className="object-cover opacity-80"
               />
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/30 to-black/80" />

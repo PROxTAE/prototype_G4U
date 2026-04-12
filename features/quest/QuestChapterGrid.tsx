@@ -1,8 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Zap, Book, Shield, Swords, Star, ChevronRight, Plus, FileJson, Sparkles, Target } from "lucide-react";
+import { Zap, Book, Shield, Swords, Star, ChevronRight, Plus, FileJson, Sparkles, Target, Trash2 } from "lucide-react";
 import { Button } from "@heroui/react";
 import { useCardStore } from "@/features/card/useCardStore";
+import { playSound } from "@/lib/sounds";
+import DeleteConfirmModal from "./DeleteConfirmModal";
 import type { Card as CardType } from "@/types";
 import * as taskService from "@/services/taskService";
 
@@ -54,11 +56,13 @@ function QuestChapterCard({
   index,
   stats,
   onSelect,
+  onDelete,
 }: {
   card: CardType;
   index: number;
   stats: CardStats;
   onSelect: () => void;
+  onDelete: (e: React.MouseEvent) => void;
 }) {
   const diff = (card.difficulty ?? "default") as keyof typeof DIFF_THEMES;
   const theme = DIFF_THEMES[diff] ?? DIFF_THEMES.default;
@@ -69,7 +73,10 @@ function QuestChapterCard({
 
   return (
     <div
-      onClick={onSelect}
+      onClick={() => {
+        playSound("click");
+        onSelect();
+      }}
       className={`
         group relative cursor-pointer rounded-3xl border-2 overflow-hidden transition-all duration-300
         hover:scale-[1.03] hover:-translate-y-1 active:scale-[0.98]
@@ -77,6 +84,14 @@ function QuestChapterCard({
         ${allDone ? "opacity-80" : ""}
       `}
     >
+      {/* Delete Button (Hover) */}
+      <button 
+        onClick={onDelete}
+        className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-black/20 hover:bg-red-500 text-white border border-white/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:scale-110 backdrop-blur-md"
+      >
+        <Trash2 size={14} />
+      </button>
+
       {/* Card gradient background */}
       <div className={`absolute inset-0 bg-gradient-to-br ${theme.gradient} opacity-90`} />
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -154,10 +169,14 @@ export default function QuestChapterGrid({
 }: {
   onCardSelect: (cardId: string) => void;
 }) {
-  const { cards, fetchCards, addCard } = useCardStore();
+  const { cards, fetchCards, addCard, removeCard } = useCardStore();
   const [statsMap, setStatsMap] = useState<Record<string, CardStats>>({});
   const [isAdding, setIsAdding] = useState(false);
   const [newTitle, setNewTitle] = useState("");
+  
+  // Deletion state
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [cardToDelete, setCardToDelete] = useState<CardType | null>(null);
 
   useEffect(() => {
     fetchCards();
@@ -187,8 +206,30 @@ export default function QuestChapterGrid({
     setIsAdding(false);
   };
 
+  const handleOpenDelete = (e: React.MouseEvent, card: CardType) => {
+    e.stopPropagation();
+    setCardToDelete(card);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (cardToDelete) {
+      await removeCard(cardToDelete.id);
+      setIsDeleteModalOpen(false);
+      setCardToDelete(null);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6 w-full">
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title={cardToDelete?.title ?? ""}
+      />
+
       {/* Add new book row */}
       <div className="flex gap-2">
         {isAdding ? (
@@ -232,6 +273,7 @@ export default function QuestChapterGrid({
                 useCardStore.getState().selectCard(card.id);
                 onCardSelect(card.id);
               }}
+              onDelete={(e) => handleOpenDelete(e, card)}
             />
           ))}
         </div>
