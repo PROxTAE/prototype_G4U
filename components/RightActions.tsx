@@ -1,9 +1,13 @@
 "use client";
-import { Lock, Book } from "lucide-react";
+import { Lock, Book, Target } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import ImportQuestModal from "@/features/quest/ImportQuestModal";
+import DailyQuestModal from "@/features/dailyQuest/DailyQuestModal";
 
 export default function RightActions() {
+  const [isQuestOpen, setIsQuestOpen] = useState(false);
+
   return (
     <>
       <div className="absolute right-2 sm:right-6 py-20 sm:py-32 top-1/2 -translate-y-1/2 flex flex-col gap-4 sm:gap-6 z-10 scale-85 sm:scale-100 origin-right">
@@ -18,17 +22,20 @@ export default function RightActions() {
           <span className="text-slate-800 dark:text-white font-black text-xs uppercase tracking-wider text-center leading-tight transition-colors">Quest<br />Books</span>
         </Link>
 
-        {/* Monthly Card / Habit Tracker */}
-        <div className="flex flex-col items-center gap-1 group cursor-pointer relative">
-          <div className="w-20 h-20 bg-gradient-to-br from-amber-300 to-amber-500 dark:from-amber-200 dark:to-yellow-500 rounded-3xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform border border-amber-400 dark:border-amber-300">
-            <div className="relative font-black text-white text-4xl">
-              M
-              <div className="absolute -top-1 -right-2 bg-red-500 w-4 h-4 rounded-full border border-white flex items-center justify-center">
-                <span className="text-[8px]">!</span>
-              </div>
+        {/* Daily Missions */}
+        <div 
+          onClick={() => setIsQuestOpen(true)}
+          className="flex flex-col items-center gap-1 group cursor-pointer relative"
+        >
+          <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-orange-500 rounded-3xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform border border-amber-300 dark:border-amber-200">
+            <div className="bg-black/10 p-3 rounded-2xl backdrop-blur-sm">
+              <Target className="text-white" size={32} />
+            </div>
+            <div className="absolute -top-1 -right-2 bg-red-500 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center shadow-lg">
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
             </div>
           </div>
-          <span className="text-slate-800 dark:text-white font-black text-xs uppercase tracking-wider text-center leading-tight transition-colors">Monthly<br />Card</span>
+          <span className="text-slate-800 dark:text-white font-black text-xs uppercase tracking-wider text-center leading-tight transition-colors">Daily<br />Missions</span>
         </div>
 
         {/* Battle Pass / Challenge Mode */}
@@ -47,6 +54,7 @@ export default function RightActions() {
       </div>
 
       <ImportQuestModal />
+      <DailyQuestModal isOpen={isQuestOpen} onOpenChange={setIsQuestOpen} />
     </>
   );
 }

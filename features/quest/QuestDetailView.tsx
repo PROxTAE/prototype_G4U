@@ -9,6 +9,7 @@ import { useTaskStore } from "@/features/task/useTaskStore";
 import { useCardStore } from "@/features/card/useCardStore";
 import { useUserStore } from "@/features/user/useUserStore";
 import RewardClaimModal from "./RewardClaimModal";
+import { useDailyQuestStore } from "@/features/dailyQuest/useDailyQuestStore";
 import { playSound } from "@/lib/sounds";
 import type { Task } from "@/types";
 
@@ -131,6 +132,9 @@ export default function QuestDetailView({ onBack }: { onBack: () => void }) {
     const exp = task.exp ?? 10;
     const coin = Math.floor(exp * 0.5);
     await toggleTask(task.id); // mark complete
+    
+    // Daily Quest Hook
+    useDailyQuestStore.getState().updateProgress(task);
 
     const nowAllDone = useTaskStore.getState().tasks.every((t) => t.completed);
     const bonusExp = nowAllDone && selectedCard?.bonusExp ? selectedCard.bonusExp : 0;
