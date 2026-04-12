@@ -85,7 +85,7 @@ export default function ImportQuestModal() {
 
                 <Modal.Footer>
                   <Button onPress={handleImport}
-                    isLoading={isLoading} className="w-full" slot="close">
+                    isLoading={isLoading} className="w-full bg-gradient-to-r from-cyan-500 to-blue-600" slot="close">
                     Confirm Import
                   </Button>
                 </Modal.Footer>
