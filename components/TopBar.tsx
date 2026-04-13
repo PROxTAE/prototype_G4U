@@ -1,5 +1,5 @@
 "use client";
-import { Plus } from "lucide-react";
+import { Plus, Zap } from "lucide-react";
 import Image from "next/image";
 import { useUserStore } from "@/features/user/useUserStore";
 import { useEffect } from "react";
@@ -41,12 +41,12 @@ export default function TopBar() {
         <div className="flex items-center gap-3">
            {/* Currency 1: Coin */}
            <div className="flex items-center gap-2">
-              <div className="bg-green-400 px-1 py-1.5 rounded-sm transform -rotate-12"><div className="w-3 h-4 border-2 border-white/50 rounded-sm" /></div>
+              <div className="bg-yellow-400 px-1 py-1.5 rounded-full hover:scale-110 transition-transform hover:rotate-12  shadow shadow-yellow-400/50"><div className="w-3 h-4 border-2 border-white/50 rounded-full" /></div>
               <span className="text-slate-800 dark:text-white font-black text-lg">{user.coin}</span>
            </div>
            {/* Currency 2: XP */}
            <div className="flex items-center gap-2 ml-2">
-              <div className="w-5 h-6 bg-fuchsia-500 rounded-sm transform rotate-[30deg] shadow-[0_0_10px_rgba(217,70,239,0.4)] dark:shadow-[0_0_10px_rgba(217,70,239,0.8)]" />
+               <Zap size={24} className="text-fuchsia-500 fill-fuchsia-500 over:scale-110 transition-transform hover:rotate-12" />
               <span className="text-slate-800 dark:text-white font-black text-lg">{user.xp}</span>
            </div>
            {/* Add Button */}

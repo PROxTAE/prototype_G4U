@@ -31,7 +31,7 @@ export default function CharacterDisplay() {
             <div className="absolute inset-0 bg-transparent dark:bg-blue-500/10 blur-[120px] rounded-full pointer-events-none transition-colors" />
 
             <Image
-               src="/character/Zani_Full_Sprite.webp"
+               src="/character/Logos.webp"
                alt="Character"
                fill
                className=" translate-y-2/10 md:translate-y-2/5 scale-200 object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] pointer-events-auto"

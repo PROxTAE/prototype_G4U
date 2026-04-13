@@ -18,7 +18,7 @@ const QUEST_TEMPLATES: Omit<DailyQuest, "id" | "progress" | "completed" | "rewar
     coin: 15,
     pointValue: 20,
     targetCount: 1,
-    condition: { type: "complete_task_with_tag", tag: "Work", count: 1 }
+    condition: { type: "complete_task_count", count: 1 }
   },
   {
     title: "Goal Getter",

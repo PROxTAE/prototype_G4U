@@ -68,57 +68,65 @@ export default function QuestPage() {
           {/* Right: user stats + import */}
           <div className="flex items-center gap-3">
             {user && (
-              <div className="hidden sm:flex items-center gap-3 bg-white/60 dark:bg-white/10 backdrop-blur-md border border-slate-200 dark:border-white/20 rounded-xl px-4 py-2">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-5 h-5 bg-fuchsia-500 rounded flex items-center justify-center shadow-sm">
-                    <Zap size={12} className="text-white fill-white" />
+              <div className="flex flex-col items-end gap-2">
+                <div className="flex items-center gap-3">
+                  {/* Currency 1: Coin */}
+                  <div className="flex items-center gap-2">
+                    <div className="bg-yellow-400 px-1 py-1.5 rounded-full hover:scale-110 transition-transform hover:rotate-12  shadow shadow-yellow-400/50"><div className="w-3 h-4 border-2 border-white/50 rounded-full" /></div>
+                    <span className="text-slate-800 dark:text-white font-black text-lg">{user.coin}</span>
                   </div>
-                  <span className="text-slate-800 dark:text-white font-black text-sm">{user.xp} XP</span>
-                </div>
-                <div className="w-px h-4 bg-slate-300 dark:bg-white/20" />
-                <div className="flex items-center gap-1.5">
-                  <div className="w-5 h-5 bg-amber-400 rounded flex items-center justify-center shadow-sm">
-                    <Coins size={12} className="text-white" />
+                  {/* Currency 2: XP */}
+                  <div className="flex items-center gap-2 ml-2">
+                    <Zap size={24} className="text-fuchsia-500 fill-fuchsia-500 over:scale-110 transition-transform hover:rotate-12" />
+                    <span className="text-slate-800 dark:text-white font-black text-lg">{user.xp}</span>
                   </div>
-                  <span className="text-slate-800 dark:text-white font-black text-sm">{user.coin}G</span>
-                </div>
+                  
+               
               </div>
+              </div>
+
+
             )}
-            <Button
-              onPress={() => useQuestStore.getState().setImportModalOpen(true)}
-              className="hidden sm:flex bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white font-bold border-0 gap-1.5 shadow-[0_5px_15px_rgba(168,85,247,0.3)]"
-            >
-              <FileJson size={15} /> Import JSON
-            </Button>
-          </div>
+          <Button
+            onPress={() => useQuestStore.getState().setImportModalOpen(true)}
+            className="hidden sm:flex bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white font-bold border-0 gap-1.5 shadow-[0_5px_15px_rgba(168,85,247,0.3)]"
+          >
+            <FileJson size={15} /> Import JSON
+          </Button>
         </div>
-
-        {/* Tab nav for view state */}
-        {view === "chapters" && (
-          <nav className="relative z-10 flex gap-1 px-8 pb-0">
-            <div className="flex items-center gap-2 border-b-2 border-cyan-500 dark:border-cyan-400 pb-2 px-1">
-              <Book size={14} className="text-cyan-600 dark:text-cyan-400" />
-              <span className="text-slate-800 dark:text-cyan-400 font-black text-sm uppercase tracking-wider">All Books</span>
-            </div>
-          </nav>
-        )}
-      </header>
-
-      {/* === MAIN CONTENT === */}
-      <main className={`relative z-10 flex-1 px-4 sm:px-8 py-6 ${view === "chapters" ? "overflow-y-auto" : "overflow-hidden"}`}>
-        {view === "chapters" ? (
-          <QuestChapterGrid onCardSelect={() => setView("detail")} />
-        ) : (
-          <div className="max-w-3xl mx-auto h-full flex flex-col">
-            <div className="rounded-3xl overflow-hidden border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-900 shadow-2xl flex-1 flex flex-col">
-              <QuestDetailView onBack={() => setView("chapters")} />
-            </div>
-          </div>
-        )}
-      </main>
-
-      {/* Import JSON modal */}
-      <ImportQuestModal />
     </div>
+
+        {/* Tab nav for view state */ }
+  {
+    view === "chapters" && (
+      <nav className="relative z-10 flex gap-1 px-8 pb-0">
+        <div className="flex items-center gap-2 border-b-2 border-cyan-500 dark:border-cyan-400 pb-2 px-1">
+          <Book size={14} className="text-cyan-600 dark:text-cyan-400" />
+          <span className="text-slate-800 dark:text-cyan-400 font-black text-sm uppercase tracking-wider">All Books</span>
+        </div>
+      </nav>
+    )
+  }
+      </header >
+
+    {/* === MAIN CONTENT === */ }
+    < main className = {`relative z-10 flex-1 px-4 sm:px-8 py-6 ${view === "chapters" ? "overflow-y-auto" : "overflow-hidden"}`
+}>
+  { view === "chapters" ? (
+  <div className="max-w-6xl mx-auto">
+    <QuestChapterGrid onCardSelect={() => setView("detail")} />
+  </div>
+) : (
+  <div className="max-w-3xl mx-auto h-full flex flex-col">
+    <div className="rounded-3xl overflow-hidden border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-900 shadow-2xl flex-1 flex flex-col">
+      <QuestDetailView onBack={() => setView("chapters")} />
+    </div>
+  </div>
+)}
+      </main >
+
+  {/* Import JSON modal */ }
+  < ImportQuestModal />
+    </div >
   );
 }

@@ -4,6 +4,7 @@ import { DailyQuest, DailyQuestState } from "@/types/quest";
 import * as dailyQuestService from "@/services/dailyQuestService";
 import { evaluateTaskForQuest } from "@/services/conditionEngine";
 import { Task } from "@/types";
+import { useStreakStore } from "@/features/streak/useStreakStore";
 
 interface DailyQuestStore extends DailyQuestState {
   initQuests: () => void;
@@ -50,6 +51,12 @@ export const useDailyQuestStore = create<DailyQuestStore>()(
 
         if (changed) {
           set({ quests: updatedQuests });
+
+          // Check if all quests are now completed
+          const allDone = updatedQuests.every(q => q.completed);
+          if (allDone && updatedQuests.length > 0) {
+            useStreakStore.getState().completeDaily();
+          }
         }
         return changed;
       },
@@ -67,6 +74,9 @@ export const useDailyQuestStore = create<DailyQuestStore>()(
             quests: updatedQuests, 
             totalPoints: totalPoints + quest.pointValue 
           });
+
+          // Update XP in streak store
+          useStreakStore.getState().addXp(quest.exp);
 
           return { exp: quest.exp, coin: quest.coin };
         }
