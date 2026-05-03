@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Zap, Book, Shield, Swords, Star, ChevronRight, Plus, FileJson, Sparkles, Target, Trash2 } from "lucide-react";
+import { Zap, Book, Shield, Swords, Star, ChevronRight, Plus, FileJson, Sparkles, Target, Trash2, Clock } from "lucide-react";
 import { Button } from "@heroui/react";
 import { useCardStore } from "@/features/card/useCardStore";
 import { playSound } from "@/lib/sounds";
@@ -49,6 +49,7 @@ interface CardStats {
   total: number;
   done: number;
   totalExp: number;
+  estimatedMinutes: number;
 }
 
 function QuestChapterCard({
@@ -105,7 +106,7 @@ function QuestChapterCard({
       />
 
       {/* Content */}
-      <div className="relative z-10 p-5 flex flex-col gap-3 min-h-[180px]">
+      <div className="relative z-10 p-5 flex flex-col gap-3 min-h-[200px]">
         {/* Top row: Chapter badge + icon */}
         <div className="flex items-start justify-between">
           <div className="flex flex-col gap-1.5">
@@ -120,16 +121,31 @@ function QuestChapterCard({
           <div className="text-4xl filter drop-shadow-lg">{emoji}</div>
         </div>
 
-        {/* Title */}
-        <h3 className="text-white font-black text-lg leading-tight drop-shadow-md line-clamp-2 mt-auto">
-          {card.title}
-        </h3>
+        {/* Title + Why */}
+        <div className="mt-auto">
+          <h3 className="text-white font-black text-lg leading-tight drop-shadow-md line-clamp-2">
+            {card.title}
+          </h3>
+          {card.why && (
+            <p className="text-white/60 text-[10px] font-medium mt-1 line-clamp-2 leading-relaxed">
+              {card.why}
+            </p>
+          )}
+        </div>
 
         {/* Stats row */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            <Zap size={12} className="text-yellow-300 fill-yellow-300" />
-            <span className="text-yellow-100 dark:text-yellow-200 font-black text-sm drop-shadow-sm">{stats.totalExp} EXP</span>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <Zap size={12} className="text-yellow-300 fill-yellow-300" />
+              <span className="text-yellow-100 dark:text-yellow-200 font-black text-sm drop-shadow-sm">{stats.totalExp} EXP</span>
+            </div>
+            {stats.estimatedMinutes > 0 && (
+              <div className="flex items-center gap-0.5 bg-white/15 backdrop-blur-sm px-1.5 py-0.5 rounded-full border border-white/10">
+                <Clock size={8} className="text-white/80" />
+                <span className="text-white/80 text-[9px] font-bold">{stats.estimatedMinutes}m</span>
+              </div>
+            )}
           </div>
           <span className="text-white/80 dark:text-white/70 text-xs font-bold drop-shadow-sm">
             {stats.done}/{stats.total} tasks
@@ -191,6 +207,7 @@ export default function QuestChapterGrid({
           total: tasks.length,
           done: tasks.filter((t) => t.completed).length,
           totalExp: tasks.reduce((s, t) => s + (t.exp ?? 10), 0) + (card.bonusExp ?? 0),
+          estimatedMinutes: tasks.reduce((s, t) => s + (t.estimated_minutes ?? 15), 0),
         };
       }
       setStatsMap(results);
@@ -268,7 +285,7 @@ export default function QuestChapterGrid({
               key={card.id}
               card={card}
               index={i}
-              stats={statsMap[card.id] ?? { total: 0, done: 0, totalExp: 0 }}
+              stats={statsMap[card.id] ?? { total: 0, done: 0, totalExp: 0, estimatedMinutes: 0 }}
               onSelect={() => {
                 useCardStore.getState().selectCard(card.id);
                 onCardSelect(card.id);

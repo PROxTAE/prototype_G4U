@@ -37,7 +37,6 @@ export default function DeleteConfirmModal({ isOpen, onClose, onConfirm, title }
               <div className="flex gap-3 w-full mt-2">
                  <Button 
                    onPress={onClose}
-                   variant="flat"
                    className="flex-1 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 font-bold rounded-xl"
                  >
                    CANCEL

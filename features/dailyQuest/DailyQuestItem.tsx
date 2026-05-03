@@ -1,6 +1,6 @@
 "use client";
 import { DailyQuest } from "@/types/quest";
-import { Button, Progress } from "@heroui/react";
+import { Button } from "@heroui/react";
 import { Zap, Coins, CheckCircle2, ChevronRight, Target } from "lucide-react";
 import { motion } from "framer-motion";
 import { useDailyQuestStore } from "./useDailyQuestStore";

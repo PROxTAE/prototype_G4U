@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Book, Plus, Trash2, Zap, Shield, Swords, Star } from "lucide-react";
+import { Book, Plus, Trash2, Zap, Shield, Swords, Star, Clock } from "lucide-react";
 import { Button, Card, Input } from "@heroui/react";
 import { useCardStore } from "@/features/card/useCardStore";
 import { useTaskStore } from "@/features/task/useTaskStore";
@@ -23,7 +23,7 @@ function QuestBookCard({ card, isSelected, onSelect, onDelete }: {
   const allTasks = useTaskStore.getState();
 
   // Get task data for this card from storage directly
-  const [cardTasks, setCardTasks] = useState<{ total: number; done: number; totalExp: number }>({ total: 0, done: 0, totalExp: 0 });
+  const [cardTasks, setCardTasks] = useState<{ total: number; done: number; totalExp: number; estimatedMinutes: number }>({ total: 0, done: 0, totalExp: 0, estimatedMinutes: 0 });
 
   useEffect(() => {
     // Load fresh from storage when needed
@@ -33,6 +33,7 @@ function QuestBookCard({ card, isSelected, onSelect, onDelete }: {
           total: t.length,
           done: t.filter(x => x.completed).length,
           totalExp: t.reduce((sum, x) => sum + (x.exp ?? 10), 0) + (card.bonusExp ?? 0),
+          estimatedMinutes: t.reduce((sum, x) => sum + (x.estimated_minutes ?? 15), 0),
         });
       });
     });
@@ -76,9 +77,16 @@ function QuestBookCard({ card, isSelected, onSelect, onDelete }: {
               {card.title}
             </p>
             {card.type === "quest" && (
-              <div className={`inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase border ${diffCfg.bg} ${diffCfg.color} ${diffCfg.border}`}>
-                <DiffIcon size={8} />
-                {diffCfg.label}
+              <div className="flex items-center gap-1.5 mt-1">
+                <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase border ${diffCfg.bg} ${diffCfg.color} ${diffCfg.border}`}>
+                  <DiffIcon size={8} />
+                  {diffCfg.label}
+                </div>
+                {cardTasks.estimatedMinutes > 0 && (
+                  <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-bold text-blue-500 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                    <Clock size={7} /> {cardTasks.estimatedMinutes}m
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -95,6 +103,13 @@ function QuestBookCard({ card, isSelected, onSelect, onDelete }: {
           <Trash2 size={14} />
         </Button>
       </div>
+
+      {/* Why text (brief) */}
+      {card.why && (
+        <p className="text-[10px] text-slate-400 dark:text-zinc-500 mt-1.5 line-clamp-1 pl-[52px]">
+          💡 {card.why}
+        </p>
+      )}
 
       {/* Progress + EXP row */}
       {cardTasks.total > 0 && (

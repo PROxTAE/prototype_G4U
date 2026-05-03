@@ -1,12 +1,20 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Plus, Zap, Trash2, CheckCircle2, Circle, Trophy, Target } from "lucide-react";
+import { Plus, Zap, Trash2, CheckCircle2, Trophy, Target, Clock, Lock, ChevronDown, ChevronUp, ListChecks, AlertCircle, Coins } from "lucide-react";
 import { Button, Input } from "@heroui/react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useTaskStore } from "@/features/task/useTaskStore";
 import { useCardStore } from "@/features/card/useCardStore";
 import { useUserStore } from "@/features/user/useUserStore";
 import RewardToast from "@/components/RewardToast";
+import FocusMode from "./FocusMode";
 import type { Task } from "@/types";
+
+const ENERGY_CONFIG = {
+  low:    { label: "Low", color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-900/20", border: "border-emerald-200 dark:border-emerald-800", icon: "🟢" },
+  medium: { label: "Med", color: "text-amber-500",   bg: "bg-amber-50 dark:bg-amber-900/20",   border: "border-amber-200 dark:border-amber-800",   icon: "🟡" },
+  high:   { label: "High", color: "text-red-500",    bg: "bg-red-50 dark:bg-red-900/20",       border: "border-red-200 dark:border-red-800",       icon: "🔴" },
+};
 
 interface ToastData {
   id: string;
@@ -15,87 +23,207 @@ interface ToastData {
   isBonus?: boolean;
 }
 
-function TaskRow({ task, onToggle, onDelete, onReward }: {
+function TaskRow({ task, allTasks, onToggle, onFocus, onDelete, onReward, isBlocked }: {
   task: Task;
+  allTasks: Task[];
   onToggle: (id: string, cb?: () => void) => void;
+  onFocus: (task: Task) => void;
   onDelete: (id: string) => void;
   onReward: (xp: number, coin: number) => void;
+  isBlocked: boolean;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const exp = task.exp ?? 10;
   const coin = Math.floor(exp * 0.5);
+  const energy = task.energy_required || "low";
+  const energyCfg = ENERGY_CONFIG[energy];
+
+  // Find dependency task names
+  const depNames = (task.depends_on || [])
+    .map(depId => allTasks.find(t => t.id === depId)?.title)
+    .filter(Boolean);
 
   const handleToggle = () => {
+    if (isBlocked) return;
     onToggle(task.id, task.completed ? undefined : () => onReward(exp, coin));
   };
 
   return (
     <div
       className={`
-        group flex items-center gap-3 rounded-2xl border-2 p-3.5 transition-all cursor-pointer select-none
+        group flex flex-col rounded-2xl border-2 transition-all
         ${task.completed
           ? "bg-slate-50 dark:bg-zinc-900/30 border-slate-200 dark:border-zinc-800 opacity-60"
-          : "bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 hover:border-cyan-300 dark:hover:border-cyan-700 hover:shadow-[0_0_10px_rgba(34,211,238,0.1)]"
+          : isBlocked
+            ? "bg-slate-50 dark:bg-zinc-900/30 border-slate-200 dark:border-zinc-800 opacity-50"
+            : "bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 hover:border-cyan-300 dark:hover:border-cyan-700 hover:shadow-[0_0_10px_rgba(34,211,238,0.1)]"
         }
       `}
-      onClick={handleToggle}
     >
-      {/* Checkbox */}
-      <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center border-2 transition-all ${
-        task.completed
-          ? "bg-emerald-500 border-emerald-500"
-          : "border-slate-300 dark:border-zinc-600 group-hover:border-cyan-400"
-      }`}>
-        {task.completed && <CheckCircle2 size={14} className="text-white fill-white" />}
-      </div>
-
-      {/* Title */}
-      <span className={`flex-1 font-bold text-sm transition-colors ${
-        task.completed
-          ? "line-through text-slate-400 dark:text-zinc-500"
-          : "text-slate-800 dark:text-white"
-      }`}>
-        {task.title}
-      </span>
-
-      {/* EXP Badge */}
-      <div className={`flex items-center gap-0.5 px-2 py-1 rounded-full flex-shrink-0 transition-all ${
-        task.completed
-          ? "bg-slate-100 dark:bg-zinc-800"
-          : "bg-fuchsia-50 dark:bg-fuchsia-900/30 border border-fuchsia-200 dark:border-fuchsia-800"
-      }`}>
-        <Zap size={10} className={task.completed ? "text-slate-400" : "text-fuchsia-500 fill-fuchsia-400"} />
-        <span className={`font-black text-[10px] ${task.completed ? "text-slate-400" : "text-fuchsia-600 dark:text-fuchsia-400"}`}>
-          +{exp}
-        </span>
-      </div>
-
-      {/* Coin hint */}
-      {!task.completed && (
-        <div className="flex items-center gap-0.5 px-2 py-1 rounded-full flex-shrink-0 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-          <span className="text-[10px] font-black text-amber-600 dark:text-amber-400">+{coin}G</span>
-        </div>
-      )}
-
-      {/* Delete */}
-      <Button
-        isIconOnly
-        size="sm"
-        onPress={() => onDelete(task.id)}
-        className="opacity-0 group-hover:opacity-100 flex-shrink-0 text-red-400 bg-transparent hover:bg-red-50 dark:hover:bg-red-900/20 border-none transition-opacity"
-        onClick={(e) => e.stopPropagation()}
+      {/* Main Row */}
+      <div
+        className={`flex items-center gap-3 p-3.5 ${!isBlocked && !task.completed ? 'cursor-pointer' : ''} select-none`}
+        onClick={handleToggle}
       >
-        <Trash2 size={14} />
-      </Button>
+        {/* Checkbox */}
+        <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center border-2 transition-all ${
+          task.completed
+            ? "bg-emerald-500 border-emerald-500"
+            : isBlocked
+              ? "border-slate-300 dark:border-zinc-700 bg-slate-100 dark:bg-zinc-800"
+              : "border-slate-300 dark:border-zinc-600 group-hover:border-cyan-400"
+        }`}>
+          {task.completed && <CheckCircle2 size={14} className="text-white fill-white" />}
+          {isBlocked && <Lock size={10} className="text-slate-400" />}
+        </div>
+
+        {/* Title + meta */}
+        <div className="flex-1 min-w-0">
+          <span className={`font-bold text-sm transition-colors block truncate ${
+            task.completed
+              ? "line-through text-slate-400 dark:text-zinc-500"
+              : isBlocked
+                ? "text-slate-400 dark:text-zinc-500"
+                : "text-slate-800 dark:text-white"
+          }`}>
+            {task.title}
+          </span>
+          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+            {/* Time badge */}
+            {task.estimated_minutes && (
+              <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-bold text-blue-500 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                <Clock size={7} /> {task.estimated_minutes}m
+              </div>
+            )}
+            {/* Energy badge */}
+            <div className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-bold ${energyCfg.bg} ${energyCfg.border} ${energyCfg.color} border`}>
+              {energyCfg.icon} {energyCfg.label}
+            </div>
+            {/* Dependencies */}
+            {depNames.length > 0 && (
+              <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-bold text-slate-400 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700">
+                🔗 {depNames.length}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* EXP Badge */}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {!task.completed && !isBlocked && task.micro_action && (
+            <Button
+              isIconOnly
+              size="sm"
+              onPress={(e) => { onFocus(task); }}
+              className="w-8 h-8 min-w-0 bg-fuchsia-500/10 hover:bg-fuchsia-500/20 text-fuchsia-500 border border-fuchsia-500/20 rounded-lg animate-pulse"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Zap size={14} className="fill-current" />
+            </Button>
+          )}
+          <div className={`flex items-center gap-0.5 px-2 py-1 rounded-full flex-shrink-0 transition-all ${
+            task.completed
+              ? "bg-slate-100 dark:bg-zinc-800"
+              : "bg-fuchsia-50 dark:bg-fuchsia-900/30 border border-fuchsia-200 dark:border-fuchsia-800"
+          }`}>
+            <Zap size={10} className={task.completed ? "text-slate-400" : "text-fuchsia-500 fill-fuchsia-400"} />
+            <span className={`font-black text-[10px] ${task.completed ? "text-slate-400" : "text-fuchsia-600 dark:text-fuchsia-400"}`}>
+              +{exp}
+            </span>
+          </div>
+        </div>
+
+        {/* Coin hint */}
+        {!task.completed && !isBlocked && (
+          <div className="flex items-center gap-0.5 px-2 py-1 rounded-full flex-shrink-0 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+            <span className="text-[10px] font-black text-amber-600 dark:text-amber-400">+{coin}G</span>
+          </div>
+        )}
+
+        {/* Expand button */}
+        {(task.micro_action || task.verification) && (
+          <Button
+            isIconOnly
+            size="sm"
+            onPress={(e) => { setExpanded(!expanded); }}
+            className="flex-shrink-0 w-7 h-7 min-w-0 bg-transparent hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-400 border-none transition-all"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+          </Button>
+        )}
+
+        {/* Delete */}
+        <Button
+          isIconOnly
+          size="sm"
+          onPress={() => onDelete(task.id)}
+          className="opacity-0 group-hover:opacity-100 flex-shrink-0 text-red-400 bg-transparent hover:bg-red-50 dark:hover:bg-red-900/20 border-none transition-opacity"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Trash2 size={14} />
+        </Button>
+      </div>
+
+      {/* Expanded Detail Panel */}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 pb-3 space-y-2 border-t border-slate-100 dark:border-zinc-800 pt-3 ml-9">
+              {task.micro_action && (
+                <div className="flex items-start gap-2">
+                  <div className="w-4 h-4 rounded bg-fuchsia-100 dark:bg-fuchsia-900/30 flex items-center justify-center shrink-0 mt-0.5">
+                    <ListChecks size={8} className="text-fuchsia-500" />
+                  </div>
+                  <div>
+                    <span className="text-[8px] font-black text-fuchsia-500 uppercase tracking-widest block">Micro Action</span>
+                    <p className="text-[11px] text-slate-600 dark:text-zinc-400 leading-relaxed">{task.micro_action}</p>
+                  </div>
+                </div>
+              )}
+              {task.verification && (
+                <div className="flex items-start gap-2">
+                  <div className="w-4 h-4 rounded bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center shrink-0 mt-0.5">
+                    <CheckCircle2 size={8} className="text-cyan-500" />
+                  </div>
+                  <div>
+                    <span className="text-[8px] font-black text-cyan-500 uppercase tracking-widest block">Verification</span>
+                    <p className="text-[11px] text-slate-600 dark:text-zinc-400 leading-relaxed">{task.verification}</p>
+                  </div>
+                </div>
+              )}
+              {depNames.length > 0 && (
+                <div className="flex items-start gap-2">
+                  <div className="w-4 h-4 rounded bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0 mt-0.5">
+                    <AlertCircle size={8} className="text-amber-500" />
+                  </div>
+                  <div>
+                    <span className="text-[8px] font-black text-amber-500 uppercase tracking-widest block">Requires</span>
+                    <p className="text-[11px] text-slate-600 dark:text-zinc-400">{depNames.join(", ")}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
 export default function QuestTaskPanel() {
-  const { tasks, fetchTasks, addTask, toggleTask, removeTask } = useTaskStore();
+  const { tasks, fetchTasks, addTask, toggleTask, removeTask, isTaskBlocked } = useTaskStore();
   const { selectedCardId, cards } = useCardStore();
   const { gainRewards } = useUserStore();
   const [newTitle, setNewTitle] = useState("");
   const [toasts, setToasts] = useState<ToastData[]>([]);
+  const [focusTask, setFocusTask] = useState<Task | null>(null);
 
   const selectedCard = cards.find(c => c.id === selectedCardId);
 
@@ -121,6 +249,13 @@ export default function QuestTaskPanel() {
     }
   };
 
+  const handleFocusComplete = async (task: Task) => {
+    setFocusTask(null);
+    const exp = task.exp ?? 10;
+    const coin = Math.floor(exp * 0.5);
+    await toggleTask(task.id, () => triggerReward(exp, coin));
+  };
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim() || !selectedCardId) return;
@@ -132,6 +267,7 @@ export default function QuestTaskPanel() {
   const doneExp = tasks.filter(t => t.completed).reduce((s, t) => s + (t.exp ?? 10), 0);
   const progress = tasks.length > 0 ? (tasks.filter(t => t.completed).length / tasks.length) * 100 : 0;
   const allDone = tasks.length > 0 && tasks.every(t => t.completed);
+  const totalEstimatedMinutes = tasks.reduce((s, t) => s + (t.estimated_minutes ?? 15), 0);
 
   // Not selected state
   if (!selectedCardId) {
@@ -150,6 +286,14 @@ export default function QuestTaskPanel() {
 
   return (
     <>
+      {focusTask && (
+        <FocusMode
+          task={focusTask}
+          onComplete={handleFocusComplete}
+          onClose={() => setFocusTask(null)}
+        />
+      )}
+      
       {toasts.map(t => (
         <RewardToast key={t.id} xp={t.xp} coin={t.coin} isBonus={t.isBonus} onDone={() => setToasts(p => p.filter(x => x.id !== t.id))} />
       ))}
@@ -166,13 +310,28 @@ export default function QuestTaskPanel() {
                 <p className="text-slate-500 dark:text-zinc-400 text-sm mt-0.5 line-clamp-1">{selectedCard.description}</p>
               )}
             </div>
-            {allDone && (
-              <div className="flex-shrink-0 flex items-center gap-1.5 bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-700 px-3 py-1.5 rounded-full">
-                <Trophy size={14} className="text-emerald-600 dark:text-emerald-400" />
-                <span className="text-xs font-black text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">Complete!</span>
-              </div>
-            )}
+            <div className="flex items-center gap-2 shrink-0">
+              {totalEstimatedMinutes > 0 && (
+                <div className="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 px-2 py-1 rounded-full">
+                  <Clock size={10} className="text-blue-500" />
+                  <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400">~{totalEstimatedMinutes}m</span>
+                </div>
+              )}
+              {allDone && (
+                <div className="flex items-center gap-1.5 bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-700 px-3 py-1.5 rounded-full">
+                  <Trophy size={14} className="text-emerald-600 dark:text-emerald-400" />
+                  <span className="text-xs font-black text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">Complete!</span>
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Why card (inline) */}
+          {selectedCard?.why && (
+            <div className="mt-2 text-[10px] text-fuchsia-500 font-bold bg-fuchsia-50 dark:bg-fuchsia-900/10 border border-fuchsia-200 dark:border-fuchsia-800/40 rounded-lg px-3 py-1.5 line-clamp-2">
+              💡 {selectedCard.why}
+            </div>
+          )}
 
           {/* Progress section */}
           {tasks.length > 0 && (
@@ -213,9 +372,12 @@ export default function QuestTaskPanel() {
             <TaskRow
               key={task.id}
               task={task}
+              allTasks={tasks}
               onToggle={toggleTask}
+              onFocus={setFocusTask}
               onDelete={removeTask}
               onReward={triggerReward}
+              isBlocked={isTaskBlocked(task)}
             />
           ))}
           {tasks.length === 0 && (
